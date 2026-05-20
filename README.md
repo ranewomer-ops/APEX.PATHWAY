@@ -7,15 +7,16 @@ Premium dark-mode automotive build planner that runs without login or Supabase.
 - No login page.
 - No Supabase setup.
 - Data is saved in this browser with `localStorage`.
-- Customer brief templates are stored in `js/store.js`.
-- The Planner page can turn a short request into an editable build plan.
+- The Planner page includes a local Apex AI Build Agent for customer briefs.
+- The agent turns a short request into an editable build plan.
 
 ## Files
 
 - `index.html` - static app entry
 - `styles.css` - responsive Apex Pathway design system
 - `js/app.js` - app events and routing
-- `js/store.js` - local data store, templates, and persistence
+- `js/store.js` - local data store and persistence
+- `js/vehicleAgent.js` - local automotive build-planning agent
 - `js/views.js` - dashboard/page rendering
 - `js/utils.js` - budget, formatting, and estimator helpers
 - `assets/apex-logo.png` - Apex Pathway logo
@@ -38,10 +39,10 @@ http://127.0.0.1:4173/
 Open **Planner** and paste:
 
 ```text
-I have a BMW M340i, I want more turbo power, Stage 2 tune, and supporting upgrades.
+Customer has a turbo car, wants more power, a safe tune, cooling, exhaust, better brakes, and a clear budget/timeline.
 ```
 
-The app will create an editable BMW M340i Stage 2 build with recommended parts, costs, estimated horsepower gain, and timeline.
+The app will create an editable build with recommended parts, costs, estimated horsepower gain, and timeline.
 
 ## Vercel
 

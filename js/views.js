@@ -26,7 +26,7 @@ export const NAV_ITEMS = [
 
 const PAGE_COPY = {
   dashboard: ["Dashboard", "Live build status, budget posture, and next operational actions."],
-  planner: ["Customer Planner", "Turn a short customer brief into an editable Apex Pathway build plan."],
+  planner: ["Apex AI Build Agent", "Describe the customer's car and goal. The agent creates an editable build plan."],
   build: ["Build Details", "Vehicle identity, build status, and user-owned project setup."],
   parts: ["Parts Management", "Editable part records with status-driven progress."],
   budget: ["Budget", "Automatic totals calculated from the current build parts."],
@@ -116,7 +116,6 @@ function renderShell(state, route, estimator, notice) {
 }
 
 function renderSidebar(state, page) {
-  const username = state.profile?.username || "Apex user";
   const nav = NAV_ITEMS.map((item) => `
     <a class="nav-link${item.id === page ? " active" : ""}" href="#/${item.id}" data-nav-link>
       <i data-lucide="${item.icon}"></i>
@@ -130,16 +129,9 @@ function renderSidebar(state, page) {
         <img src="./assets/apex-logo.png" alt="Apex Pathway">
         <div class="brand-title">
           <strong>Apex Pathway</strong>
-          <span>Automotive SaaS</span>
         </div>
       </div>
       <nav class="side-nav">${nav}</nav>
-      <div class="sidebar-footer">
-        <div class="user-chip">
-          <span>Signed in</span>
-          <strong>${escapeHtml(username)}</strong>
-        </div>
-      </div>
     </aside>
   `;
 }
@@ -168,7 +160,7 @@ function renderPage(page, state, build, estimator) {
 
   switch (page) {
     case "planner":
-      return renderPlannerPage(state.templates);
+      return renderPlannerPage();
     case "build":
       return renderBuildPage(state, build);
     case "parts":
@@ -302,7 +294,7 @@ function renderBuildPage(state, build) {
             </div>
             <div class="field">
               <label for="new-car-model">Car model</label>
-              <input id="new-car-model" name="car_model" placeholder="BMW E39 540i" required>
+              <input id="new-car-model" name="car_model" placeholder="Customer vehicle" required>
             </div>
             <div class="field">
               <label for="new-build-status">Status</label>
@@ -352,95 +344,62 @@ function renderBuildPage(state, build) {
   `;
 }
 
-function renderPlannerPage(templates) {
-  const options = templates.map((template) => `
-    <option value="${escapeHtml(template.id)}">${escapeHtml(template.package_name)}</option>
-  `).join("");
-
+function renderPlannerPage() {
   return `
     <div class="content-grid">
+      <section class="agent-hero">
+        <div>
+          <p class="eyebrow">Apex AI Build Agent</p>
+          <h2>Turn a rough customer idea into a structured build.</h2>
+          <p>It reads the brief, detects the vehicle and power goal, estimates parts, budget, horsepower range, project time, and a milestone timeline.</p>
+        </div>
+        <div class="agent-orbit" aria-hidden="true">
+          <i data-lucide="brain-circuit"></i>
+        </div>
+      </section>
+
       <section class="card">
         <div class="card-header">
           <div>
-            <h2>Build from customer brief</h2>
-            <p>Example: "I have a BMW M340i and want Stage 2 turbo power, tune, and supporting upgrades."</p>
+            <h2>Ask the agent</h2>
+            <p>Use plain language. Include car, current mods, power goal, budget, fuel, daily/track use, and any reliability concerns.</p>
           </div>
         </div>
         <form class="form-stack" data-form="create-plan">
           <div class="field">
             <label for="customer-brief">Customer brief</label>
-            <textarea id="customer-brief" name="customer_brief" required placeholder="I have a BMW M340i, I want more turbo power, Stage 2 tune, and supporting upgrades."></textarea>
+            <textarea id="customer-brief" name="customer_brief" required placeholder="Customer has a turbo car, wants more power, a safe tune, cooling, exhaust, better brakes, and a clear budget/timeline."></textarea>
           </div>
           <div class="form-grid">
             <div class="field">
               <label for="build-name">Build name</label>
-              <input id="build-name" name="build_name" placeholder="Customer M340i Stage 2">
-            </div>
-            <div class="field">
-              <label for="template-id">Plan template</label>
-              <select id="template-id" name="template_id" ${templates.length ? "" : "disabled"}>
-                <option value="">Auto match from brief</option>
-                ${options}
-              </select>
+              <input id="build-name" name="build_name" placeholder="Customer performance build">
             </div>
           </div>
-          <button class="btn primary" type="submit" ${templates.length ? "" : "disabled"}>
+          <button class="btn primary" type="submit">
             <i data-lucide="sparkles"></i>
-            Create editable build plan
+            Generate editable build plan
           </button>
         </form>
       </section>
 
-      ${templates.length ? `
-        <section class="grid-2">
-          ${templates.map(renderTemplateCard).join("")}
-        </section>
-      ` : `
-        <section class="empty-state">
-          <h2>No planner templates loaded</h2>
-          <p>No templates are available in this build. Add one in <strong>js/store.js</strong>.</p>
-        </section>
-      `}
+      <section class="grid-3">
+        ${renderAgentCapability("Detects the platform", "Looks for engine family, forced induction type, use case, and upgrade stage from the customer's wording.", "scan-search")}
+        ${renderAgentCapability("Creates a build sheet", "Generates editable parts, costs, categories, HP range, and timeline milestones.", "list-checks")}
+        ${renderAgentCapability("Keeps it realistic", "Adds inspection, tuning, cooling, validation, and reliability notes before chasing headline numbers.", "shield-check")}
+      </section>
     </div>
   `;
 }
 
-function renderTemplateCard(template) {
-  const partsTotal = (template.template_parts || []).reduce((sum, part) => sum + Number(part.price || 0), 0);
-  const milestones = safeArray(template.milestones);
-
+function renderAgentCapability(title, copy, icon) {
   return `
-    <article class="card template-card">
-      <div class="card-header">
-        <div>
-          <h2>${escapeHtml(template.package_name)}</h2>
-          <p>${escapeHtml(template.customer_summary)}</p>
-        </div>
-        <span class="badge installed">${escapeHtml(template.estimated_time_weeks)}</span>
+    <article class="agent-card">
+      <div class="agent-card-icon">
+        <i data-lucide="${icon}"></i>
       </div>
-      <div class="grid-3">
-        ${renderMetric("Stock HP", `${template.stock_hp} hp`, template.car_model)}
-        ${renderMetric("Estimated HP", `${template.estimated_hp_low}-${template.estimated_hp_high} hp`, "Realistic range")}
-        ${renderMetric("Parts budget", formatCurrency(partsTotal), `${template.template_parts?.length || 0} recommended items`)}
-      </div>
-      <div class="quote-block">${escapeHtml(template.plan_notes)}</div>
-      <div class="template-list">
-        <h3>Recommended parts</h3>
-        ${(template.template_parts || []).map((part) => `
-          <div class="budget-row">
-            <span>${escapeHtml(part.name)}</span>
-            <strong>${formatCurrency(part.price)}</strong>
-          </div>
-        `).join("")}
-      </div>
-      <div class="template-list">
-        <h3>Estimated timeline</h3>
-        ${milestones.map((milestone) => `
-          <div class="list-row">
-            <span><strong>${escapeHtml(milestone.label)}:</strong> ${escapeHtml(milestone.title)}</span>
-          </div>
-        `).join("")}
-      </div>
+      <h2>${escapeHtml(title)}</h2>
+      <p>${escapeHtml(copy)}</p>
     </article>
   `;
 }

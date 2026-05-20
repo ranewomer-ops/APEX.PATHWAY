@@ -333,15 +333,15 @@ svg {
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px;
-  min-height: 88px;
+  gap: 14px;
+  padding: 22px 20px;
+  min-height: 108px;
   border-bottom: 1px solid var(--line);
 }
 
 .brand img {
-  width: 54px;
-  height: 54px;
+  width: 76px;
+  height: 76px;
   object-fit: contain;
 }
 
@@ -352,15 +352,8 @@ svg {
 .brand-title strong {
   display: block;
   color: white;
-  font-size: 1rem;
+  font-size: 1.08rem;
   line-height: 1.1;
-}
-
-.brand-title span {
-  display: block;
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 0.78rem;
 }
 
 .side-nav {
@@ -844,17 +837,82 @@ svg {
   margin-bottom: 8px;
 }
 
-.template-card {
+.agent-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 260px;
   display: grid;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  background:
+    linear-gradient(135deg, rgba(59, 130, 246, 0.18), transparent 48%),
+    linear-gradient(315deg, rgba(34, 211, 238, 0.12), transparent 34%),
+    rgba(18, 22, 28, 0.92);
 }
 
-.template-card .grid-3 {
-  gap: 10px;
+.agent-hero h2 {
+  max-width: 760px;
+  margin: 0;
+  font-size: 2.35rem;
+  line-height: 1;
 }
 
-.template-card .metric {
-  padding: 12px;
+.agent-hero p:not(.eyebrow) {
+  max-width: 720px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.agent-orbit {
+  width: 124px;
+  height: 124px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(34, 211, 238, 0.24);
+  border-radius: 50%;
+  background: rgba(34, 211, 238, 0.08);
+  box-shadow: 0 0 60px rgba(59, 130, 246, 0.2);
+}
+
+.agent-orbit svg {
+  width: 54px;
+  height: 54px;
+  color: #b7f7ff;
+}
+
+.agent-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  background: rgba(18, 22, 28, 0.72);
+}
+
+.agent-card-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.agent-card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.agent-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .quote-block {
@@ -1079,6 +1137,21 @@ svg {
   .hero-panel {
     min-height: 220px;
     padding: 18px;
+  }
+
+  .agent-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .agent-hero h2 {
+    font-size: 1.65rem;
+  }
+
+  .agent-orbit {
+    width: 82px;
+    height: 82px;
   }
 
   .form-grid,

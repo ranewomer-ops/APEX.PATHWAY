@@ -1,44 +1,7 @@
 import { calculateBudget, getMaintenanceStatus, toNumber } from "./utils.js";
+import { generateBuildPlan } from "./vehicleAgent.js";
 
 const STORAGE_KEY = "apex-pathway-local-v2";
-
-const M340I_TEMPLATE = {
-  id: "bmw-m340i-b58-stage-2",
-  slug: "bmw-m340i-b58-stage-2",
-  package_name: "BMW M340i B58 Stage 2 Power Package",
-  car_model: "BMW M340i / G20 B58",
-  customer_summary: "For a customer who wants an M340i to make stronger turbo power with a Stage 2 tune, supporting hardware, cooling, and reliability checks.",
-  stock_hp: 382,
-  estimated_hp_low: 470,
-  estimated_hp_high: 520,
-  estimated_gain_low: 88,
-  estimated_gain_high: 138,
-  estimated_time_weeks: "3-5 weeks",
-  plan_notes: "This plan assumes a healthy B58, quality fuel, conservative calibration, datalog review, and no drivetrain faults. Hybrid turbo work is listed as optional because it usually moves the car beyond normal Stage 2 scope.",
-  match_keywords: ["bmw", "m340i", "b58", "stage 2", "stage2", "turbo", "tune", "downpipe", "more power", "upgrade"],
-  milestones: [
-    { label: "Week 1", title: "Inspection and baseline", detail: "Compression/health scan, stock logs, fuel quality check, and parts confirmation." },
-    { label: "Week 1-2", title: "Hardware install", detail: "Downpipe, charge pipe, intake, plugs, and cooling support." },
-    { label: "Week 2-3", title: "Calibration", detail: "Stage 2 ECU tune, transmission tune, dyno or road datalogging." },
-    { label: "Week 3-5", title: "Validation", detail: "Heat soak checks, boost leak check, customer handoff, and optional hybrid turbo decision." }
-  ],
-  template_parts: [
-    { name: "Pre-build inspection and diagnostic scan", category: "Inspection", price: 180, notes: "Health scan, smoke test, baseline logs, and fault review before modifications." },
-    { name: "High-flow catted downpipe", category: "Exhaust", price: 950, notes: "Stage 2 power requires reduced exhaust restriction. Confirm emissions rules locally." },
-    { name: "Stage 2 ECU calibration", category: "Tuning", price: 850, notes: "Calibrated for the selected fuel and hardware. Includes datalog revisions." },
-    { name: "xHP transmission tune", category: "Drivetrain", price: 450, notes: "Improves shift strategy and torque handling for the ZF8." },
-    { name: "Upgraded charge pipe", category: "Intake", price: 320, notes: "Reduces failure risk under higher boost." },
-    { name: "High-flow intake or panel filter", category: "Intake", price: 420, notes: "Supports airflow and improves serviceability." },
-    { name: "Upgraded heat exchanger / cooling support", category: "Cooling", price: 900, notes: "Recommended for repeated pulls and hot climate reliability." },
-    { name: "One-step-colder spark plugs", category: "Ignition", price: 180, notes: "Gap plugs to tuner recommendation before calibration." },
-    { name: "Ignition coils inspection / replacement allowance", category: "Ignition", price: 280, notes: "Replace only if age, misfires, or logs justify it." },
-    { name: "Dyno session and datalog validation", category: "Validation", price: 500, notes: "Power verification, AFR/knock/boost review, and final customer report." },
-    { name: "Optional upgraded HPFP for ethanol blend", category: "Fuel System", price: 950, notes: "Only needed for ethanol blends or Stage 2+ targets." },
-    { name: "Optional hybrid turbo upgrade path", category: "Turbo Upgrade", price: 3200, notes: "Moves beyond normal Stage 2. Requires deeper fueling, cooling, and tuning review." }
-  ]
-};
-
-const DEFAULT_TEMPLATES = [M340I_TEMPLATE];
 
 const emptyBuildData = () => ({
   parts: [],
@@ -55,9 +18,7 @@ export class ApexStore {
       booting: true,
       loading: false,
       session: { mode: "local" },
-      profile: { id: "local", username: "Local workspace" },
       builds: [],
-      templates: DEFAULT_TEMPLATES,
       currentBuildId: null,
       error: "",
       ...emptyBuildData()
@@ -185,32 +146,29 @@ export class ApexStore {
       throw new Error("Enter the customer's brief first.");
     }
 
-    const template = this.findTemplateForBrief(brief, fields.template_id);
-    if (!template) {
-      throw new Error("No matching build template found.");
-    }
+    const plan = generateBuildPlan(brief);
 
     const build = {
       id: makeId("build"),
-      name: fields.build_name?.trim() || `${template.car_model} Customer Build`,
-      car_model: template.car_model,
+      name: fields.build_name?.trim() || `${plan.car_model} Build Plan`,
+      car_model: plan.car_model,
       budget_total: 0,
       status: "planning",
       customer_brief: brief,
-      package_name: template.package_name,
-      stock_hp: template.stock_hp,
-      estimated_hp_low: template.estimated_hp_low,
-      estimated_hp_high: template.estimated_hp_high,
-      estimated_gain_low: template.estimated_gain_low,
-      estimated_gain_high: template.estimated_gain_high,
-      estimated_time_weeks: template.estimated_time_weeks,
-      plan_notes: template.plan_notes,
-      plan_milestones: template.milestones || [],
+      package_name: plan.package_name,
+      stock_hp: plan.stock_hp,
+      estimated_hp_low: plan.estimated_hp_low,
+      estimated_hp_high: plan.estimated_hp_high,
+      estimated_gain_low: plan.estimated_gain_low,
+      estimated_gain_high: plan.estimated_gain_high,
+      estimated_time_weeks: plan.estimated_time_weeks,
+      plan_notes: plan.plan_notes,
+      plan_milestones: plan.milestones || [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    const parts = (template.template_parts || []).map((part) => ({
+    const parts = (plan.template_parts || []).map((part) => ({
       id: makeId("part"),
       build_id: build.id,
       name: part.name,
@@ -231,27 +189,12 @@ export class ApexStore {
         id: makeId("event"),
         build_id: build.id,
         event_type: "Planning phase",
-        message: `${template.package_name} generated from customer brief.`,
+        message: `${plan.package_name} generated by Apex AI Build Agent.`,
         created_at: new Date().toISOString()
       }]
     };
     this.saveLocalData();
     await this.setCurrentBuild(build.id);
-  }
-
-  findTemplateForBrief(brief, templateId) {
-    if (templateId) {
-      return this.state.templates.find((template) => template.id === templateId) || null;
-    }
-
-    const text = brief.toLowerCase();
-    return [...this.state.templates]
-      .map((template) => {
-        const keywords = template.match_keywords || [];
-        const score = keywords.reduce((sum, keyword) => text.includes(String(keyword).toLowerCase()) ? sum + 1 : sum, 0);
-        return { template, score };
-      })
-      .sort((a, b) => b.score - a.score)[0]?.template || this.state.templates[0] || null;
   }
 
   async updateCurrentBuild(fields) {
