@@ -24,7 +24,7 @@ Premium dark-mode automotive build planner that runs without login or Supabase.
 ## Local Preview
 
 ```bash
-node dev-server.mjs
+npm run dev
 ```
 
 Then open:
@@ -42,3 +42,10 @@ I have a BMW M340i, I want more turbo power, Stage 2 tune, and supporting upgrad
 ```
 
 The app will create an editable BMW M340i Stage 2 build with recommended parts, costs, estimated horsepower gain, and timeline.
+
+## Vercel
+
+Vercel should use:
+
+- Build command: `npm run build`
+- Output directory: `dist`
