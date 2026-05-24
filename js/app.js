@@ -1,6 +1,7 @@
 import { ApexStore } from "./store.js";
 import { renderApp, renderChatMessages, renderEstimatorResult } from "./views.js";
 import { getChatState, getLastAssistantMessage, sendChatMessage, subscribeToChat } from "./aiChat.js";
+import { generateBuildPlan } from "./vehicleAgent.js";
 
 class ApexApp {
   constructor(root) {
@@ -159,11 +160,19 @@ class ApexApp {
 
     if (action === "use-as-brief") {
       const brief = getLastAssistantMessage();
+      if (!brief) return;
+
       const briefArea = this.root.querySelector("#customer-brief");
-      if (briefArea && brief) {
-        briefArea.value = brief;
-        briefArea.scrollIntoView({ behavior: "smooth", block: "center" });
+      const nameInput = this.root.querySelector("#build-name");
+
+      if (briefArea) briefArea.value = brief;
+
+      if (nameInput) {
+        const plan = generateBuildPlan(brief);
+        nameInput.value = `${plan.car_model} – ${plan.package_name}`.trim();
       }
+
+      briefArea?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
