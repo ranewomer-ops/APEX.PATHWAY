@@ -12,7 +12,6 @@ import {
   getPhaseSummary,
   groupBy
 } from "./utils.js";
-import { getChatState } from "./aiChat.js";
 
 export const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: "layout-dashboard" },
@@ -351,96 +350,31 @@ function renderBuildPage(state, build) {
   `;
 }
 
-export function renderChatMessages(messages, loading, chatError) {
-  const bubbles = messages
-    .map(
-      (msg) => `
-      <div class="chat-bubble ${escapeHtml(msg.role)}">
-        <p>${escapeHtml(msg.content)}</p>
-      </div>`
-    )
-    .join("");
-
-  const spinner = loading
-    ? `<div class="chat-bubble assistant">
-        <span class="chat-dots"><span></span><span></span><span></span></span>
-       </div>`
-    : "";
-
-  const err = chatError
-    ? `<p class="chat-error">${escapeHtml(chatError)}</p>`
-    : "";
-
-  return bubbles + spinner + err;
-}
-
 function renderPlannerPage() {
-  const { messages, loading, chatError } = getChatState();
-  const hasConversation = messages.length > 1;
-
   return `
     <div class="content-grid">
       <section class="agent-hero">
         <div>
           <p class="eyebrow">Apex AI Build Agent</p>
-          <h2>Chat with our AI consultant to plan your build.</h2>
-          <p>Describe your car and goals — the AI asks the right questions, then generates a tailored build plan you can edit and save.</p>
+          <h2>Turn a rough customer idea into a structured build.</h2>
+          <p>It reads the brief, detects the vehicle and power goal, estimates parts, budget, horsepower range, project time, and a milestone timeline.</p>
         </div>
         <div class="agent-orbit" aria-hidden="true">
-          <i data-lucide="bot"></i>
+          <i data-lucide="brain-circuit"></i>
         </div>
       </section>
 
       <section class="card">
         <div class="card-header">
           <div>
-            <h2>
-              <i data-lucide="bot" style="display:inline;vertical-align:middle;margin-right:6px;width:18px;height:18px;"></i>
-              AI Build Consultant
-            </h2>
-            <p>Chat below — tell the AI about your car, goals, and budget to get a recommendation.</p>
-          </div>
-          <span class="badge installed">Free · No login</span>
-        </div>
-
-        <div class="chat-messages" id="chat-messages">
-          ${renderChatMessages(messages, loading, chatError)}
-        </div>
-
-        <div class="chat-input-row">
-          <input
-            class="chat-input"
-            id="chat-input"
-            type="text"
-            placeholder="e.g. I have a BMW E46 330i, want more power for weekends…"
-            ${loading ? "disabled" : ""}
-            autocomplete="off"
-          />
-          <button class="btn primary" type="button" data-action="chat-send" ${loading ? "disabled" : ""}>
-            <i data-lucide="send"></i>
-          </button>
-        </div>
-
-        ${hasConversation ? `
-        <div style="margin-top:12px;">
-          <button class="btn secondary" type="button" data-action="use-as-brief">
-            <i data-lucide="sparkles"></i>
-            Use AI recommendation as build brief
-          </button>
-        </div>` : ""}
-      </section>
-
-      <section class="card">
-        <div class="card-header">
-          <div>
-            <h2>Create build from brief</h2>
-            <p>Paste or type a brief, or click the button above to fill it from the AI chat.</p>
+            <h2>Ask the agent</h2>
+            <p>Use plain language. Include car, current mods, power goal, budget, fuel, daily/track use, and any reliability concerns.</p>
           </div>
         </div>
         <form class="form-stack" data-form="create-plan">
           <div class="field">
             <label for="customer-brief">Customer brief</label>
-            <textarea id="customer-brief" name="customer_brief" required placeholder="Customer has a turbo BMW, wants Stage 2 power, a safe tune, cooling, exhaust, and a clear budget/timeline."></textarea>
+            <textarea id="customer-brief" name="customer_brief" required placeholder="Customer has a turbo car, wants more power, a safe tune, cooling, exhaust, better brakes, and a clear budget/timeline."></textarea>
           </div>
           <div class="form-grid">
             <div class="field">
