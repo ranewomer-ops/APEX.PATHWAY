@@ -216,6 +216,20 @@ export class ApexStore {
     this.setState({ builds: this.state.builds, error: "" });
   }
 
+  async deleteBuild(buildId) {
+    const nextBuilds = this.state.builds.filter((b) => b.id !== buildId);
+    delete this.buildData[buildId];
+    const nextId = nextBuilds[0]?.id || null;
+    this.state.builds = nextBuilds;
+    this.saveLocalData();
+    this.setState({
+      builds: nextBuilds,
+      currentBuildId: nextId,
+      ...(nextId ? this.getBuildData(nextId) : { parts: [], timelineEvents: [], maintenanceItems: [], maintenanceHistory: [] }),
+      error: ""
+    });
+  }
+
   async addPart(fields) {
     const buildId = this.state.currentBuildId;
     if (!buildId) {

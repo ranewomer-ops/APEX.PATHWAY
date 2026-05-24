@@ -333,10 +333,16 @@ function renderBuildPage(state, build) {
                 <select id="build-status" name="status">${renderOptions(BUILD_STATUS, build.status)}</select>
               </div>
             </div>
-            <button class="btn secondary" type="submit">
-              <i data-lucide="save"></i>
-              Save build
-            </button>
+            <div class="form-actions">
+              <button class="btn secondary" type="submit">
+                <i data-lucide="save"></i>
+                Save build
+              </button>
+              <button class="btn danger" type="button" data-action="delete-build" data-id="${escapeHtml(build.id)}">
+                <i data-lucide="trash-2"></i>
+                Delete build
+              </button>
+            </div>
           </form>
         </section>
         ${renderBuildPlanSummary(build)}

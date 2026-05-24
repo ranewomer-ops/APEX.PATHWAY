@@ -167,6 +167,13 @@ class ApexApp {
       return;
     }
 
+    if (action === "delete-build") {
+      if (window.confirm("Delete this build and all its parts? This cannot be undone.")) {
+        await this.run(() => this.store.deleteBuild(id), "Build deleted");
+      }
+      return;
+    }
+
     if (action === "delete-part") {
       if (window.confirm("Delete this part?")) {
         await this.run(() => this.store.deletePart(id), "Part deleted");
