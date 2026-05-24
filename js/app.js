@@ -1,5 +1,6 @@
 import { ApexStore } from "./store.js";
-import { renderApp, renderEstimatorResult } from "./views.js";
+import { renderApp, renderChatMessages, renderEstimatorResult } from "./views.js";
+import { getChatState, getLastAssistantMessage, sendChatMessage, subscribeToChat } from "./aiChat.js";
 
 class ApexApp {
   constructor(root) {
@@ -21,10 +22,14 @@ class ApexApp {
       this.render();
     });
 
+    // Chat updates: patch only the chat messages div to preserve input focus
+    subscribeToChat(() => this.updateChatUI());
+
     this.root.addEventListener("submit", (event) => this.handleSubmit(event));
     this.root.addEventListener("click", (event) => this.handleClick(event));
     this.root.addEventListener("change", (event) => this.handleChange(event));
     this.root.addEventListener("input", (event) => this.handleInput(event));
+    this.root.addEventListener("keydown", (event) => this.handleKeydown(event));
   }
 
   async init() {
@@ -42,6 +47,24 @@ class ApexApp {
     if (window.lucide) {
       window.lucide.createIcons();
     }
+  }
+
+  updateChatUI() {
+    const { messages, loading, chatError } = getChatState();
+
+    const messagesEl = this.root.querySelector("#chat-messages");
+    if (messagesEl) {
+      messagesEl.innerHTML = renderChatMessages(messages, loading, chatError);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    const inputEl = this.root.querySelector(".chat-input");
+    if (inputEl) inputEl.disabled = loading;
+
+    const sendBtn = this.root.querySelector("[data-action='chat-send']");
+    if (sendBtn) sendBtn.disabled = loading;
+
+    if (window.lucide) window.lucide.createIcons();
   }
 
   setNotice(message) {
@@ -67,6 +90,21 @@ class ApexApp {
     } catch (error) {
       this.setNotice(error.message || "Something went wrong.");
     }
+  }
+
+  handleKeydown(event) {
+    if (event.key !== "Enter" || event.shiftKey) return;
+    const input = event.target;
+    if (!input.classList.contains("chat-input")) return;
+    event.preventDefault();
+    this.submitChatInput(input);
+  }
+
+  submitChatInput(inputEl) {
+    const text = (inputEl?.value ?? "").trim();
+    if (!text) return;
+    inputEl.value = "";
+    void sendChatMessage(text);
   }
 
   async handleSubmit(event) {
@@ -110,6 +148,22 @@ class ApexApp {
 
     if (action === "toggle-nav") {
       document.body.classList.toggle("nav-open");
+      return;
+    }
+
+    if (action === "chat-send") {
+      const inputEl = this.root.querySelector(".chat-input");
+      this.submitChatInput(inputEl);
+      return;
+    }
+
+    if (action === "use-as-brief") {
+      const brief = getLastAssistantMessage();
+      const briefArea = this.root.querySelector("#customer-brief");
+      if (briefArea && brief) {
+        briefArea.value = brief;
+        briefArea.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
       return;
     }
 
